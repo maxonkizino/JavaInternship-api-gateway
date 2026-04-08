@@ -6,8 +6,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class JavaInternshipApiGatewayApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(JavaInternshipApiGatewayApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(JavaInternshipApiGatewayApplication.class, args);
+    }
 
 }
