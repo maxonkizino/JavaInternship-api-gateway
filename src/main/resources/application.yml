@@ -1,0 +1,56 @@
+server:
+  port: ${SERVER_PORT:8080}
+
+app:
+  downstream:
+    user-service-url: ${USER_SERVICE_URI:http://localhost:8081}
+    auth-service-url: ${AUTH_SERVICE_URI:http://localhost:8082}
+  gateway-internal-secret: ${GATEWAY_INTERNAL_SECRET:local-dev-gateway-internal-secret}
+
+spring:
+  application:
+    name: JavaInternship-api-gateway
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          secret-key: ${JWT_SECRET:development-jwt-secret-at-least-256-bits-long-for-hs256-algorithm-secure-key}
+  cloud:
+    refresh:
+      enabled: false
+    discovery:
+      enabled: false
+    gateway:
+      routes:
+        - id: user-service
+          uri: ${USER_SERVICE_URI:http://localhost:8081}
+          predicates:
+            - Path=/api/users/**,/api/payment-cards/**
+        - id: auth-service
+          uri: ${AUTH_SERVICE_URI:http://localhost:8082}
+          predicates:
+            - Path=/auth/**
+        - id: order-service
+          uri: ${ORDER_SERVICE_URI:http://localhost:8083}
+          predicates:
+            - Path=/api/orders/**,/api/order-items/**,/api/items/**
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowed-origin-patterns: ${CORS_ALLOWED_ORIGIN_PATTERNS:*}
+            allowed-methods:
+              - GET
+              - POST
+              - PUT
+              - PATCH
+              - DELETE
+              - OPTIONS
+            allowed-headers: "*"
+            allow-credentials: true
+            max-age: 3600
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
