@@ -3,9 +3,9 @@ package com.javainternshipapigateway.config;
 import com.javainternshipapigateway.support.JwtTestSupport;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
@@ -66,6 +66,46 @@ class GatewaySecurityIntegrationTest {
         webTestClient.get()
                 .uri("/api/users/1")
                 .headers(h -> h.setBearerAuth(token))
+                .exchange()
+                .expectStatus()
+                .value(s -> assertThat(s).isNotEqualTo(HttpStatus.UNAUTHORIZED.value()));
+    }
+
+    @Test
+    void getAuthCsrfPermittedWithoutToken() {
+        webTestClient.get()
+                .uri("/auth/csrf")
+                .exchange()
+                .expectStatus()
+                .value(s -> assertThat(s).isNotEqualTo(HttpStatus.UNAUTHORIZED.value()));
+    }
+
+    @Test
+    void postAuthLoginPermittedWithoutToken() {
+        webTestClient.post()
+                .uri("/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue("{}")
+                .exchange()
+                .expectStatus()
+                .value(s -> assertThat(s).isNotEqualTo(HttpStatus.UNAUTHORIZED.value()));
+    }
+
+    @Test
+    void postAuthCredentialsPermittedWithoutToken() {
+        webTestClient.post()
+                .uri("/auth/credentials")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue("{}")
+                .exchange()
+                .expectStatus()
+                .value(s -> assertThat(s).isNotEqualTo(HttpStatus.UNAUTHORIZED.value()));
+    }
+
+    @Test
+    void optionsPreflightPermittedWithoutToken() {
+        webTestClient.options()
+                .uri("/api/users/1")
                 .exchange()
                 .expectStatus()
                 .value(s -> assertThat(s).isNotEqualTo(HttpStatus.UNAUTHORIZED.value()));

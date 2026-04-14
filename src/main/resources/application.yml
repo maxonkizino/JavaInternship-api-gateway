@@ -34,6 +34,10 @@ spring:
           uri: ${ORDER_SERVICE_URI:http://localhost:8083}
           predicates:
             - Path=/api/orders/**,/api/order-items/**,/api/items/**
+        - id: payment-service
+          uri: ${PAYMENT_SERVICE_URI:http://localhost:8084}
+          predicates:
+            - Path=/api/payments/**
       globalcors:
         cors-configurations:
           '[/**]':
