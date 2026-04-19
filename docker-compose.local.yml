@@ -1,6 +1,3 @@
-# From JavaInternship-api-gateway/: build all Spring services from sibling repos.
-#   docker compose -f docker-compose.yml -f docker-compose.local.yml up --build
-
 services:
   user-service:
     build:

@@ -77,7 +77,7 @@ class RegistrationFlowIntegrationTest {
                 {"name":"John","surname":"Doe","birthDate":"1990-05-20","email":"j@d.com","login":"jdoe","password":"secret12"}""";
 
         webTestClient.post()
-                .uri("/api/registration")
+                .uri("/api/registrations")
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(json)
                 .exchange()
@@ -96,7 +96,7 @@ class RegistrationFlowIntegrationTest {
                 {"name":"","surname":"Doe","birthDate":"1990-05-20","email":"bad","login":"u","password":"x"}""";
 
         webTestClient.post()
-                .uri("/api/registration")
+                .uri("/api/registrations")
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(json)
                 .exchange()
@@ -122,7 +122,7 @@ class RegistrationFlowIntegrationTest {
                 {"name":"Al","surname":"Bo","birthDate":"2000-01-01","email":"a@b.com","login":"ab","password":"secret12"}""";
 
         webTestClient.post()
-                .uri("/api/registration")
+                .uri("/api/registrations")
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(json)
                 .exchange()
@@ -137,5 +137,33 @@ class RegistrationFlowIntegrationTest {
         assertThat(rollback.getMethod()).isEqualTo("DELETE");
         assertThat(rollback.getPath()).isEqualTo("/api/users/internal/register/7/rollback");
         assertThat(rollback.getHeader("X-Gateway-Internal")).isEqualTo("test-gateway-secret");
+    }
+
+    @Test
+    @Order(4)
+    void registrationReturnsServerErrorWhenRollbackFailsAfterAuthError() throws InterruptedException {
+        userServer.enqueue(new MockResponse()
+                .setResponseCode(201)
+                .addHeader("Content-Type", "application/json")
+                .setBody("{\"id\":8,\"name\":\"A\",\"surname\":\"B\",\"birthDate\":\"2000-01-01\",\"email\":\"x@y.com\",\"active\":true}"));
+        authServer.enqueue(new MockResponse()
+                .setResponseCode(400)
+                .addHeader("Content-Type", "application/json")
+                .setBody("{\"error\":\"duplicate\"}"));
+        userServer.enqueue(new MockResponse().setResponseCode(503));
+
+        String json = """
+                {"name":"Al","surname":"Bo","birthDate":"2000-01-01","email":"x@y.com","login":"xy","password":"secret12"}""";
+
+        webTestClient.post()
+                .uri("/api/registrations")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(json)
+                .exchange()
+                .expectStatus().isEqualTo(503);
+
+        userServer.takeRequest(2, TimeUnit.SECONDS);
+        authServer.takeRequest(2, TimeUnit.SECONDS);
+        assertThat(userServer.takeRequest(2, TimeUnit.SECONDS).getMethod()).isEqualTo("DELETE");
     }
 }

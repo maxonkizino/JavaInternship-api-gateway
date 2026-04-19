@@ -15,11 +15,6 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 
-/**
- * JWT validation (same secret as auth-service).
- * Public: composite signup {@code POST /api/registration}, direct auth {@code POST /auth/login},
- * {@code POST /auth/credentials} (register credentials), refresh, CSRF.
- */
 @Configuration
 @EnableWebFluxSecurity
 public class GatewaySecurityConfig {
@@ -37,11 +32,9 @@ public class GatewaySecurityConfig {
         http
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .authorizeExchange(exchanges -> exchanges
-                        .pathMatchers("/actuator/health", "/actuator/info").permitAll()
                         .pathMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .pathMatchers(HttpMethod.POST, "/api/registration", "/auth/login", "/auth/credentials", "/auth/refresh")
+                        .pathMatchers(HttpMethod.POST, "/api/registrations", "/auth/login")
                         .permitAll()
-                        .pathMatchers(HttpMethod.GET, "/auth/csrf").permitAll()
                         .anyExchange().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()));
         return http.build();

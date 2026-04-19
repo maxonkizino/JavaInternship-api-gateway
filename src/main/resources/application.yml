@@ -22,8 +22,14 @@ spring:
       enabled: false
     gateway:
       routes:
+        - id: order-service-user-orders
+          uri: ${ORDER_SERVICE_URI:http://localhost:8083}
+          order: -1
+          predicates:
+            - Path=/api/users/*/orders/**
         - id: user-service
           uri: ${USER_SERVICE_URI:http://localhost:8081}
+          order: 10
           predicates:
             - Path=/api/users/**,/api/payment-cards/**
         - id: auth-service

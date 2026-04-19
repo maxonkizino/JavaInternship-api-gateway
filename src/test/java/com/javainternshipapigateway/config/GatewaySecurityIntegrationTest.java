@@ -32,11 +32,11 @@ class GatewaySecurityIntegrationTest {
     private WebTestClient webTestClient;
 
     @Test
-    void actuatorHealthPermittedWithoutToken() {
+    void actuatorHealthRequiresAuthentication() {
         webTestClient.get()
                 .uri("/actuator/health")
                 .exchange()
-                .expectStatus().isOk();
+                .expectStatus().isUnauthorized();
     }
 
     @Test
@@ -52,7 +52,7 @@ class GatewaySecurityIntegrationTest {
         String body = """
                 {"name":"Jo","surname":"Do","birthDate":"1990-01-01","email":"a@b.com","login":"uu","password":"secret12"}""";
         webTestClient.post()
-                .uri("/api/registration")
+                .uri("/api/registrations")
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(body)
                 .exchange()
@@ -72,12 +72,11 @@ class GatewaySecurityIntegrationTest {
     }
 
     @Test
-    void getAuthCsrfPermittedWithoutToken() {
+    void getAuthCsrfRequiresAuthentication() {
         webTestClient.get()
                 .uri("/auth/csrf")
                 .exchange()
-                .expectStatus()
-                .value(s -> assertThat(s).isNotEqualTo(HttpStatus.UNAUTHORIZED.value()));
+                .expectStatus().isUnauthorized();
     }
 
     @Test
@@ -92,14 +91,23 @@ class GatewaySecurityIntegrationTest {
     }
 
     @Test
-    void postAuthCredentialsPermittedWithoutToken() {
+    void postAuthCredentialsRequiresAuthentication() {
         webTestClient.post()
                 .uri("/auth/credentials")
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue("{}")
                 .exchange()
-                .expectStatus()
-                .value(s -> assertThat(s).isNotEqualTo(HttpStatus.UNAUTHORIZED.value()));
+                .expectStatus().isUnauthorized();
+    }
+
+    @Test
+    void postAuthRefreshRequiresAuthentication() {
+        webTestClient.post()
+                .uri("/auth/refresh")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue("{}")
+                .exchange()
+                .expectStatus().isUnauthorized();
     }
 
     @Test

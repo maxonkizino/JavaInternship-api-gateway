@@ -13,6 +13,6 @@ public class RegistrationRouteConfiguration {
 
     @Bean
     public RouterFunction<ServerResponse> registrationRoute(RegistrationOrchestrator orchestrator) {
-        return RouterFunctions.route(POST("/api/registration"), orchestrator::handle);
+        return RouterFunctions.route(POST("/api/registrations"), orchestrator::handle);
     }
 }

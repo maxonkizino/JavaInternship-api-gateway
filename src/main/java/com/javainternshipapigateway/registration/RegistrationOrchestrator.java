@@ -111,7 +111,6 @@ public class RegistrationOrchestrator {
                 .retrieve()
                 .toBodilessEntity()
                 .then()
-                .doOnError(e -> log.warn("Rollback failed for userId={}", userId, e))
-                .onErrorResume(e -> Mono.empty());
+                .doOnError(e -> log.error("Rollback failed for userId={}", userId, e));
     }
 }
