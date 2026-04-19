@@ -1,0 +1,20 @@
+services:
+  user-service:
+    build:
+      context: ../JavaInternship-user-service
+      dockerfile: Dockerfile
+
+  auth-service:
+    build:
+      context: ../Javaintership-auth-service
+      dockerfile: Dockerfile
+
+  order-service:
+    build:
+      context: ../JavaInternship-order-service
+      dockerfile: Dockerfile
+
+  api-gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile
