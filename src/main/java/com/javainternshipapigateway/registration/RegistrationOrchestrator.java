@@ -18,6 +18,7 @@ import reactor.core.publisher.Mono;
 
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 @Service
@@ -43,6 +44,7 @@ public class RegistrationOrchestrator {
 
     public Mono<ServerResponse> handle(ServerRequest request) {
         return request.bodyToMono(CompositeRegistrationRequest.class)
+                .doOnNext(body -> log.info("Registration request received: login={}, email={}", body.login(), body.email()))
                 .flatMap(this::validate)
                 .flatMap(this::registerUserThenCredentials)
                 .flatMap(userId -> ServerResponse.status(HttpStatus.CREATED)
@@ -77,6 +79,7 @@ public class RegistrationOrchestrator {
     }
 
     private Mono<Long> registerUserThenCredentials(CompositeRegistrationRequest body) {
+        log.info("Starting registration orchestration for login={}", body.login());
         return userServiceWebClient.post()
                 .uri("/api/users/internal/register")
                 .header("X-Gateway-Internal", gatewayInternalSecret)
@@ -84,11 +87,16 @@ public class RegistrationOrchestrator {
                 .bodyValue(body.userProfile())
                 .retrieve()
                 .onStatus(status -> status.isError(), response -> response.bodyToMono(String.class)
-                        .map(b -> new DownstreamClientException(response.statusCode(), b))
+                        .defaultIfEmpty("")
+                        .map(b -> new DownstreamClientException(response.statusCode(),
+                                b.isBlank() ? "user-service returned error without body" : b))
                         .flatMap(Mono::error))
                 .bodyToMono(UserProfileResponse.class)
+                .switchIfEmpty(Mono.error(new DownstreamClientException(
+                        HttpStatus.BAD_GATEWAY, "user-service returned empty body")))
                 .flatMap(profile -> {
                     Long userId = profile.id();
+                    log.info("User profile created in user-service: userId={}", userId);
                     var authBody = new CompositeRegistrationRequest.RegisterAuthBody(
                             userId, body.login(), body.password(), body.email());
                     return authServiceWebClient.post()
@@ -97,11 +105,18 @@ public class RegistrationOrchestrator {
                             .bodyValue(authBody)
                             .retrieve()
                             .onStatus(status -> status.isError(), response -> response.bodyToMono(String.class)
+                                    .defaultIfEmpty("")
                                     .flatMap(errBody -> rollback(userId)
                                             .then(Mono.error(new DownstreamClientException(response.statusCode(), errBody)))))
                             .bodyToMono(Long.class)
+                            .switchIfEmpty(Mono.error(new DownstreamClientException(
+                                    HttpStatus.BAD_GATEWAY, "auth-service returned empty body")))
+                            .doOnNext(authId -> log.info("Credentials created in auth-service: authId={}, userId={}", authId, userId))
                             .thenReturn(userId);
-                });
+                })
+                .onErrorMap(TimeoutException.class,
+                        ex -> new ResponseStatusException(HttpStatus.GATEWAY_TIMEOUT, "Registration timed out", ex))
+                .doOnError(ex -> log.error("Registration orchestration failed for login={}", body.login(), ex));
     }
 
     private Mono<Void> rollback(Long userId) {

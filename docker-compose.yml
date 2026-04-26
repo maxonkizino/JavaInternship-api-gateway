@@ -126,6 +126,6 @@ services:
       - auth-service
       - order-service
       - payment-service
-
 volumes:
   postgres_data:
+
