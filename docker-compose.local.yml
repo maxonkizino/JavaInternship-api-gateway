@@ -1,0 +1,31 @@
+# Локальная сборка api-gateway для общего стека (корневой docker-compose.yml).
+services:
+  api-gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    networks:
+      - stack
+    environment:
+      SERVER_PORT: "8080"
+      JWT_SECRET: ${JWT_SECRET}
+      GATEWAY_INTERNAL_SECRET: ${GATEWAY_INTERNAL_SECRET}
+      USER_SERVICE_URI: ${USER_SERVICE_URI}
+      AUTH_SERVICE_URI: ${AUTH_SERVICE_URI}
+      ORDER_SERVICE_URI: ${ORDER_SERVICE_URI}
+      PAYMENT_SERVICE_URI: ${PAYMENT_SERVICE_URI}
+    ports:
+      - "8080:8080"
+    depends_on:
+      user-service:
+        condition: service_started
+      auth-service:
+        condition: service_started
+      order-service:
+        condition: service_started
+      payment-service:
+        condition: service_started
+
+networks:
+  stack:
+    driver: bridge

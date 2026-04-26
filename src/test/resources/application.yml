@@ -1,0 +1,12 @@
+app:
+  downstream:
+    user-service-url: http://127.0.0.1:1
+    auth-service-url: http://127.0.0.1:1
+  gateway-internal-secret: test-gateway-internal-secret
+
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          secret-key: test-secret-key-at-least-256-bits-long-for-hs256-xxxxxxxx
