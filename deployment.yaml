@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: java-internship-api-gateway
+  labels:
+    app: java-internship-api-gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: java-internship-api-gateway
+  template:
+    metadata:
+      labels:
+        app: java-internship-api-gateway
+    spec:
+      containers:
+        - name: java-internship-api-gateway
+          image: maxononion/javainternship-api-gateway:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SERVER_PORT
+              value: "8080"
+            - name: JWT_SECRET
+              value: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef 
+            - name: GATEWAY_INTERNAL_SECRET
+              value: c6qw0BZJNvF44eaZfqoqLVNwNGdquOgn
+            - name: USER_SERVICE_URI
+              value: http://java-internship-user-service:8081
+            - name: AUTH_SERVICE_URI
+              value: http://java-internship-auth-service:8082
+            - name: ORDER_SERVICE_URI
+              value: http://java-internship-order-service:8083
+            - name: PAYMENT_SERVICE_URI
+              value: http://java-internship-payment-service:8084
