@@ -19,6 +19,19 @@ import java.nio.charset.StandardCharsets;
 @EnableWebFluxSecurity
 public class GatewaySecurityConfig {
 
+    private static final String[] PUBLIC_POST_ENDPOINTS = {
+            "/api/registrations",
+            "/auth/login",
+            "/auth/validate",
+            "/auth/refresh"
+    };
+
+    private static final String[] PUBLIC_GET_ENDPOINTS = {
+            "/auth/csrf",
+            "/actuator/health",
+            "/actuator/info"
+    };
+
     @Bean
     public ReactiveJwtDecoder reactiveJwtDecoder(
             @Value("${spring.security.oauth2.resourceserver.jwt.secret-key}") String secret) {
@@ -33,8 +46,8 @@ public class GatewaySecurityConfig {
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .authorizeExchange(exchanges -> exchanges
                         .pathMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .pathMatchers(HttpMethod.POST, "/api/registrations", "/auth/login")
-                        .permitAll()
+                        .pathMatchers(HttpMethod.POST, PUBLIC_POST_ENDPOINTS).permitAll()
+                        .pathMatchers(HttpMethod.GET, PUBLIC_GET_ENDPOINTS).permitAll()           
                         .anyExchange().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()));
         return http.build();
