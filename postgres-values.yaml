@@ -1,0 +1,33 @@
+
+auth:
+
+  postgresPassword: "root"
+
+
+primary:
+  service:
+    ports:
+      postgresql: 5432
+
+  persistence:
+    enabled: true
+    size: 20Gi
+
+    storageClass: "standard"
+
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "500m"
+    limits:
+      memory: "1Gi"
+      cpu: "1000m"
+
+
+  initdb:
+    scripts:
+      01-init-databases.sql: |
+        CREATE DATABASE user_service;
+        CREATE DATABASE auth_service;
+        CREATE DATABASE order_service;
+

@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: java-internship-api-gateway
+  labels:
+    app: java-internship-api-gateway
+spec:
+  selector:
+    app: java-internship-api-gateway
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+  type: ClusterIP
+  

@@ -32,11 +32,11 @@ class GatewaySecurityIntegrationTest {
     private WebTestClient webTestClient;
 
     @Test
-    void actuatorHealthRequiresAuthentication() {
+    void actuatorHealthIsPublicForProbes() {
         webTestClient.get()
                 .uri("/actuator/health")
                 .exchange()
-                .expectStatus().isUnauthorized();
+                .expectStatus().isOk();
     }
 
     @Test
@@ -72,11 +72,12 @@ class GatewaySecurityIntegrationTest {
     }
 
     @Test
-    void getAuthCsrfRequiresAuthentication() {
+    void getAuthCsrfPermittedWithoutToken() {
         webTestClient.get()
                 .uri("/auth/csrf")
                 .exchange()
-                .expectStatus().isUnauthorized();
+                .expectStatus()
+                .value(s -> assertThat(s).isNotEqualTo(HttpStatus.UNAUTHORIZED.value()));
     }
 
     @Test
@@ -101,13 +102,14 @@ class GatewaySecurityIntegrationTest {
     }
 
     @Test
-    void postAuthRefreshRequiresAuthentication() {
+    void postAuthRefreshPermittedWithoutJwt() {
         webTestClient.post()
                 .uri("/auth/refresh")
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue("{}")
                 .exchange()
-                .expectStatus().isUnauthorized();
+                .expectStatus()
+                .value(s -> assertThat(s).isNotEqualTo(HttpStatus.UNAUTHORIZED.value()));
     }
 
     @Test

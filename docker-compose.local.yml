@@ -1,4 +1,4 @@
-# Локальная сборка api-gateway для общего стека (корневой docker-compose.yml).
+
 services:
   api-gateway:
     build:
